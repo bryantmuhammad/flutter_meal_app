@@ -1,21 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:meals/providers/filters_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class FilterSwitch extends StatelessWidget {
+class FilterSwitch extends ConsumerWidget {
   const FilterSwitch({
     super.key,
     required this.filter,
-    required this.onToggleFilter,
   });
 
   final Map<String, dynamic> filter;
-  final void Function(Map<String, dynamic>) onToggleFilter;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return SwitchListTile(
       value: filter['isChecked'],
       onChanged: (isChecked) {
-        onToggleFilter(filter);
+        ref
+            .read(filtersProvider.notifier)
+            .setFilter(filter['filter'], isChecked);
       },
       title: Text(
         filter['title'],

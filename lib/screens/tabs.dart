@@ -1,20 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:meals/models/meal.dart';
 import 'package:meals/screens/categories.dart';
 import 'package:meals/screens/filters.dart';
 import 'package:meals/screens/meals.dart';
 import 'package:meals/widgets/main_drawer.dart';
+import 'package:meals/providers/meals_providers.dart';
+import 'package:meals/providers/favorites_provider.dart';
+import 'package:meals/providers/filters_provider.dart';
 
-class TabScreen extends StatefulWidget {
+class TabScreen extends ConsumerStatefulWidget {
   const TabScreen({super.key});
 
   @override
-  State<TabScreen> createState() {
+  ConsumerState<TabScreen> createState() {
     return _TabScreenState();
   }
 }
 
-class _TabScreenState extends State<TabScreen> {
+class _TabScreenState extends ConsumerState<TabScreen> {
   int _selectedIndex = 0;
 
   void _selectPage(int index) {
@@ -23,37 +27,11 @@ class _TabScreenState extends State<TabScreen> {
     });
   }
 
-  void _showInfoMessage(String message) {
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-      ),
-    );
-  }
-
-  final List<Meal> _favoriteMeals = [];
-  void _toggleMealFavoriteStatus(Meal meal) {
-    final bool isExisting = _favoriteMeals.contains(meal);
-
-    if (isExisting) {
-      setState(() {
-        _favoriteMeals.remove(meal);
-      });
-      _showInfoMessage('Meals has been remove from favorite');
-    } else {
-      setState(() {
-        _favoriteMeals.add(meal);
-      });
-      _showInfoMessage('Meals has been added into favorite');
-    }
-  }
-
-  void _selectScreen(String identifier) {
+  void _selectScreen(String identifier) async {
     Navigator.of(context).pop();
 
     if (identifier == 'filters') {
-      Navigator.of(context).push(
+      Navigator.of(context).push<Map<Filter, bool>>(
         MaterialPageRoute(
           builder: (ctx) => const Filters(),
         ),
@@ -63,15 +41,19 @@ class _TabScreenState extends State<TabScreen> {
 
   @override
   Widget build(BuildContext context) {
+    //watching a global state if ther is a chance widget will re-render
+    final List<Meal> availableMeals = ref.watch(filteredMealsProvider);
+
     Widget activeWidget = CategoriesScreen(
-      onToggleFavorite: _toggleMealFavoriteStatus,
+      availableMeals: availableMeals,
     );
+
     String activeTitle = 'Categories';
 
     if (_selectedIndex == 1) {
+      final favoriteMeals = ref.watch(favoriteMealsProvider);
       activeWidget = MealsScreen(
-        meals: _favoriteMeals,
-        onToggleFavorite: _toggleMealFavoriteStatus,
+        meals: favoriteMeals,
       );
       activeTitle = 'Favorite';
     }

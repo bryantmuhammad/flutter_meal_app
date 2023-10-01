@@ -1,36 +1,52 @@
 import 'package:flutter/material.dart';
 import 'package:meals/widgets/filter_switch.dart';
+import 'package:meals/providers/filters_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class Filters extends StatefulWidget {
-  const Filters({super.key});
+final List<Map<String, dynamic>> kInitialFilterList = [
+  {
+    'isChecked': false,
+    'title': 'Gluten-free',
+    'subtitle': 'Only include gluten-free meals',
+    'filter': Filter.glutenFree
+  },
+  {
+    'isChecked': false,
+    'title': 'Lactose-free',
+    'subtitle': 'Only include lactose-free meals',
+    'filter': Filter.lactoseFree
+  },
+  {
+    'isChecked': false,
+    'title': 'Vegetarian',
+    'subtitle': 'Only include vegetarian meals',
+    'filter': Filter.vegetarian
+  },
+  {
+    'isChecked': false,
+    'title': 'Vegan',
+    'subtitle': 'Only include vegan meals',
+    'filter': Filter.vegan
+  }
+];
+
+class Filters extends ConsumerWidget {
+  const Filters({
+    super.key,
+  });
 
   @override
-  State<Filters> createState() {
-    return _FiltersState();
-  }
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final filterList = kInitialFilterList;
+    final currentFilters = ref.watch(filtersProvider);
 
-class _FiltersState extends State<Filters> {
-  bool _glutenFreeFilterSet = false;
-  List<Map<String, dynamic>> filterList = [
-    {
-      'isChecked': false,
-      'title': 'Gluten-free',
-      'subtitle': 'Only include gluten-free meals'
-    }
-  ];
+    currentFilters.forEach((key, value) {
+      int filterIndex =
+          filterList.indexWhere((filter) => filter['filter'] == key);
 
-  void _toggleFilter(Map<String, dynamic> filter) {
-    int filterIndex = filterList.indexWhere((element) => element == filter);
-
-    setState(() {
-      filterList[filterIndex]['isChecked'] =
-          !filterList[filterIndex]['isChecked'];
+      filterList[filterIndex]['isChecked'] = value;
     });
-  }
 
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Your Filters'),
@@ -40,7 +56,6 @@ class _FiltersState extends State<Filters> {
           for (final filter in filterList)
             FilterSwitch(
               filter: filter,
-              onToggleFilter: _toggleFilter,
             )
         ],
       ),
